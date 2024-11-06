@@ -2,6 +2,7 @@ package nl.inferno.customSMP;
 
 import nl.inferno.customSMP.commands.ClanCommand;
 import nl.inferno.customSMP.managers.ClanManager;
+import nl.inferno.customSMP.managers.PermissionManager;
 import nl.inferno.customSMP.systems.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +17,7 @@ public final class CustomSMP extends JavaPlugin {
     private LevelSystem levelSystem;
     private ClanWarSystem clanWarSystem;
     private TerritorySystem territorySystem;
+    private PermissionManager permissionManager;
     private ClanBankSystem clanBankSystem;
     private AchievementSystem achievementSystem;
     private ClanChatSystem clanChatSystem;
@@ -31,13 +33,13 @@ public final class CustomSMP extends JavaPlugin {
     }
 
     private void initializeSystems() {
-        clanManager = new ClanManager();
-        levelSystem = new LevelSystem();
-        clanWarSystem = new ClanWarSystem();
-        territorySystem = new TerritorySystem();
-        clanBankSystem = new ClanBankSystem();
-        achievementSystem = new AchievementSystem();
-        clanChatSystem = new ClanChatSystem();
+        clanManager = new ClanManager(this);
+        levelSystem = new LevelSystem(this);
+        clanWarSystem = new ClanWarSystem(this);
+        territorySystem = new TerritorySystem(this);
+        clanBankSystem = new ClanBankSystem(this);
+        achievementSystem = new AchievementSystem(this);
+        clanChatSystem = new ClanChatSystem(this);
     }
 
     private void registerCommands() {
@@ -94,4 +96,5 @@ public final class CustomSMP extends JavaPlugin {
     public ClanBankSystem getClanBankSystem() { return clanBankSystem; }
     public AchievementSystem getAchievementSystem() { return achievementSystem; }
     public ClanChatSystem getClanChatSystem() { return clanChatSystem; }
+    public PermissionManager getPermissionManager() { return permissionManager; }
 }
