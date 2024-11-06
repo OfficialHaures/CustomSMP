@@ -1,0 +1,8 @@
+name: CustomSMP
+version: '1.0'
+main: nl.inferno.customSMP.CustomSMP
+api-version: '1.19'
+commands:
+  clan:
+    description: Hoofdcommando voor het clan systeem
+    usage: /<command> [create|invite|join|leave|sethome|home|bank]
