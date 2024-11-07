@@ -64,21 +64,64 @@ public final class CustomSMP extends JavaPlugin {
     private void connectToDatabase() {
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            String host = getConfig().getString("database.host");
-            String port = getConfig().getString("database.port");
-            String database = getConfig().getString("database.database");
-            String username = getConfig().getString("database.username");
-            String password = getConfig().getString("database.password");
-
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://" + host + ":" + port + "/" + database,
-                    username,
-                    password
+                    "jdbc:mysql://u11_1IMZSyQUhi:cnmkYkdZNyREvkSWkbc%40%3D0Ml@185.228.82.169:3306/s11_SMPClans",
+                    "u11_1IMZSyQUhi",
+                    "cnmkYkdZNyREvkSWkbc@=0Ml"
             );
+
+            // Create clans table
+            connection.createStatement().execute(
+                    "CREATE TABLE IF NOT EXISTS clans (" +
+                            "id INT PRIMARY KEY AUTO_INCREMENT," +
+                            "name VARCHAR(32) UNIQUE," +
+                            "tag VARCHAR(5)," +
+                            "leader VARCHAR(36)," +
+                            "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
+            );
+
+            // Create clan_members table
+            connection.createStatement().execute(
+                    "CREATE TABLE IF NOT EXISTS clan_members (" +
+                            "clan_id INT," +
+                            "player_uuid VARCHAR(36)," +
+                            "rank VARCHAR(16)," +
+                            "joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
+                            "PRIMARY KEY (clan_id, player_uuid)," +
+                            "FOREIGN KEY (clan_id) REFERENCES clans(id) ON DELETE CASCADE)"
+            );
+
+            // Create clan_data table
+            connection.createStatement().execute(
+                    "CREATE TABLE IF NOT EXISTS clan_data (" +
+                            "clan_id INT PRIMARY KEY," +
+                            "level INT DEFAULT 1," +
+                            "experience INT DEFAULT 0," +
+                            "balance DOUBLE DEFAULT 0," +
+                            "max_members INT DEFAULT 10," +
+                            "max_territories INT DEFAULT 5," +
+                            "home_world VARCHAR(64)," +
+                            "home_x DOUBLE," +
+                            "home_y DOUBLE," +
+                            "home_z DOUBLE," +
+                            "home_yaw FLOAT," +
+                            "home_pitch FLOAT," +
+                            "FOREIGN KEY (clan_id) REFERENCES clans(id) ON DELETE CASCADE)"
+            );
+
+            // Add any missing columns to existing tables
+            connection.createStatement().execute(
+                    "ALTER TABLE clans ADD COLUMN IF NOT EXISTS tag VARCHAR(5) AFTER name"
+            );
+
+            getLogger().info("Database tables initialized successfully!");
+
         } catch (Exception e) {
             getLogger().severe("Database connection failed: " + e.getMessage());
         }
     }
+
+
 
     public static CustomSMP getInstance() {
         return instance;

@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,71 +18,62 @@ public class ClanGUI {
     private final CustomSMP plugin;
     private final Inventory inventory;
     private final Player player;
-    private final Clan clan;
 
     public ClanGUI(Player player) {
         this.plugin = CustomSMP.getInstance();
         this.player = player;
-        this.clan = plugin.getClanManager().getPlayerClan(player.getUniqueId());
         this.inventory = Bukkit.createInventory(null, 54, "Clan Management");
         initializeItems();
     }
 
     private void initializeItems() {
-        // Clan Info
-        inventory.setItem(13, createGuiItem(Material.SHIELD, "&b" + clan.getName(),
-                "&7Tag: &f" + clan.getTag(),
-                "&7Level: &f" + clan.getLevel(),
-                "&7Experience: &f" + clan.getExperience() + "/" + plugin.getLevelSystem().getRequiredExperience(clan.getLevel() + 1),
-                "&7Members: &f" + clan.getMembers().size() + "/" + clan.getMaxMembers()
-        ));
+        Clan playerClan = plugin.getClanManager().getPlayerClan(player.getUniqueId());
 
-        // Members Management
-        inventory.setItem(28, createMembersItem());
+        if (playerClan != null) {
+            // Player is in a clan
+            inventory.setItem(13, createGuiItem(Material.BLACK_BANNER, "&bClan Info",
+                    "&7Naam: &f" + playerClan.getName(),
+                    "&7Tag: &f" + playerClan.getTag(),
+                    "&7Level: &f" + playerClan.getLevel(),
+                    "&7Experience: &f" + playerClan.getExperience(),
+                    "&7Leden: &f" + playerClan.getMembers().size() + "/" + playerClan.getMaxMembers(),
+                    "&7Bank: &f" + playerClan.getBalance()));
 
-        // Bank Management
-        inventory.setItem(30, createBankItem());
+            // Clan management items
+            inventory.setItem(29, createGuiItem(Material.PLAYER_HEAD, "&aLeden Beheren",
+                    "&7Klik om leden te beheren"));
+            inventory.setItem(31, createGuiItem(Material.GOLD_INGOT, "&6Bank Beheren",
+                    "&7Balans: &f" + playerClan.getBalance(),
+                    "&7Klik om de bank te beheren"));
+            inventory.setItem(33, createGuiItem(Material.COMPASS, "&eClan Home",
+                    "&7Klik om naar de clan home te gaan"));
 
-        // Territory Management
-        inventory.setItem(32, createTerritoryItem());
+            // Additional clan options
+            if (playerClan.isLeader(player.getUniqueId())) {
+                inventory.setItem(45, createGuiItem(Material.BARRIER, "&cClan Opheffen",
+                        "&7Klik om de clan op te heffen"));
+                inventory.setItem(47, createGuiItem(Material.NAME_TAG, "&eNaam Wijzigen",
+                        "&7Klik om de clan naam te wijzigen"));
+                inventory.setItem(51, createGuiItem(Material.PAPER, "&eTag Wijzigen",
+                        "&7Klik om de clan tag te wijzigen"));
+            }
+        } else {
+            // Player is not in a clan
+            inventory.setItem(13, createGuiItem(Material.GRAY_BANNER, "&bGeen Clan",
+                    "&7Je zit momenteel niet in een clan",
+                    "&7Gebruik &f/clan create &7om er een te maken"));
 
-        // Settings
-        inventory.setItem(34, createSettingsItem());
+            // Create clan button
+            inventory.setItem(31, createGuiItem(Material.EMERALD, "&aMaak een Clan",
+                    "&7Klik om een nieuwe clan te maken"));
+        }
 
         // Fill empty slots with glass panes
-        fillEmptySlots();
-    }
-
-    private ItemStack createMembersItem() {
-        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN + "Leden Beheren");
-        meta.setLore(Arrays.asList(
-                ChatColor.GRAY + "Online leden: " + getOnlineMembersCount(),
-                ChatColor.GRAY + "Klik om leden te beheren"
-        ));
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private ItemStack createBankItem() {
-        return createGuiItem(Material.GOLD_INGOT, "&6Bank Beheren",
-                "&7Balans: &f" + clan.getBalance(),
-                "&7Klik om de bank te beheren"
-        );
-    }
-
-    private ItemStack createTerritoryItem() {
-        return createGuiItem(Material.COMPASS, "&eTerritories",
-                "&7Geclaimde chunks: &f" + getClaimedChunksCount(),
-                "&7Klik om territories te beheren"
-        );
-    }
-
-    private ItemStack createSettingsItem() {
-        return createGuiItem(Material.REDSTONE_TORCH, "&cInstellingen",
-                "&7Klik om clan instellingen te wijzigen"
-        );
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, createGuiItem(Material.BLACK_STAINED_GLASS_PANE, " "));
+            }
+        }
     }
 
     private ItemStack createGuiItem(Material material, String name, String... lore) {
@@ -98,25 +88,6 @@ public class ClanGUI {
         meta.setLore(coloredLore);
         item.setItemMeta(meta);
         return item;
-    }
-
-    private void fillEmptySlots() {
-        ItemStack filler = createGuiItem(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < inventory.getSize(); i++) {
-            if (inventory.getItem(i) == null) {
-                inventory.setItem(i, filler);
-            }
-        }
-    }
-
-    private int getOnlineMembersCount() {
-        return (int) clan.getMembers().stream()
-                .filter(uuid -> Bukkit.getPlayer(uuid) != null)
-                .count();
-    }
-
-    private int getClaimedChunksCount() {
-        return plugin.getTerritorySystem().getClaimedChunksCount(clan);
     }
 
     public void open() {
